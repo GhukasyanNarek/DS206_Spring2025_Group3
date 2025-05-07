@@ -7,16 +7,17 @@ END
 
 USE ORDER_DDS;
 
-IF OBJECT_ID('dbo.Staging_Categories','U') IS NOT NULL DROP TABLE dbo.Staging_Categories;
-IF OBJECT_ID('dbo.Staging_Customers','U')  IS NOT NULL DROP TABLE dbo.Staging_Customers;
-IF OBJECT_ID('dbo.Staging_Employees','U')  IS NOT NULL DROP TABLE dbo.Staging_Employees;
 IF OBJECT_ID('dbo.Staging_OrderDetails','U') IS NOT NULL DROP TABLE dbo.Staging_OrderDetails;
 IF OBJECT_ID('dbo.Staging_Orders','U')     IS NOT NULL DROP TABLE dbo.Staging_Orders;
 IF OBJECT_ID('dbo.Staging_Products','U')   IS NOT NULL DROP TABLE dbo.Staging_Products;
-IF OBJECT_ID('dbo.Staging_Region','U')    IS NOT NULL DROP TABLE dbo.Staging_Region;
+IF OBJECT_ID('dbo.Staging_Territories','U') IS NOT NULL DROP TABLE dbo.Staging_Territories;
+IF OBJECT_ID('dbo.Staging_Employees','U')  IS NOT NULL DROP TABLE dbo.Staging_Employees;
+IF OBJECT_ID('dbo.Staging_Customers','U')  IS NOT NULL DROP TABLE dbo.Staging_Customers;
 IF OBJECT_ID('dbo.Staging_Shippers','U')   IS NOT NULL DROP TABLE dbo.Staging_Shippers;
 IF OBJECT_ID('dbo.Staging_Suppliers','U')  IS NOT NULL DROP TABLE dbo.Staging_Suppliers;
-IF OBJECT_ID('dbo.Staging_Territories','U') IS NOT NULL DROP TABLE dbo.Staging_Territories;
+IF OBJECT_ID('dbo.Staging_Categories','U') IS NOT NULL DROP TABLE dbo.Staging_Categories;
+IF OBJECT_ID('dbo.Staging_Region','U')    IS NOT NULL DROP TABLE dbo.Staging_Region;
+
 
 
 -- Categories Table
@@ -24,7 +25,7 @@ IF OBJECT_ID('dbo.Staging_Categories', 'U') IS NOT NULL
     DROP TABLE dbo.Staging_Categories;
 CREATE TABLE dbo.Staging_Categories (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
-    CategoryID INT,
+    CategoryID INT UNIQUE,
     CategoryName NVARCHAR(255),
     Description NVARCHAR(MAX)
 );
@@ -34,7 +35,7 @@ IF OBJECT_ID('dbo.Staging_Customers', 'U') IS NOT NULL
     DROP TABLE dbo.Staging_Customers;
 CREATE TABLE dbo.Staging_Customers (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
-    CustomerID NVARCHAR(5),
+    CustomerID NVARCHAR(5) UNIQUE,
     CompanyName NVARCHAR(255),
     ContactName NVARCHAR(255),
     ContactTitle NVARCHAR(255),
@@ -52,7 +53,7 @@ IF OBJECT_ID('dbo.Staging_Employees', 'U') IS NOT NULL
     DROP TABLE dbo.Staging_Employees;
 CREATE TABLE dbo.Staging_Employees (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
-    EmployeeID INT,
+    EmployeeID INT UNIQUE,
     LastName NVARCHAR(255),
     FirstName NVARCHAR(255),
     Title NVARCHAR(255),
@@ -77,11 +78,11 @@ IF OBJECT_ID('dbo.Staging_OrderDetails', 'U') IS NOT NULL
     DROP TABLE dbo.Staging_OrderDetails;
 CREATE TABLE dbo.Staging_OrderDetails (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
-    OrderID INT,
+    OrderID INT UNIQUE,
     ProductID INT,
     UnitPrice DECIMAL(10,2),
     Quantity SMALLINT,
-    Discount FLOAT
+    Discount FLOAT,
 );
 
 
@@ -90,7 +91,7 @@ IF OBJECT_ID('dbo.Staging_Orders', 'U') IS NOT NULL
 
 CREATE TABLE dbo.Staging_Orders (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
-    OrderID INT,
+    OrderID INT UNIQUE,
     CustomerID NVARCHAR(5),
     EmployeeID INT,
     OrderDate DATETIME,
@@ -104,7 +105,7 @@ CREATE TABLE dbo.Staging_Orders (
     ShipRegion NVARCHAR(255),
     ShipPostalCode NVARCHAR(20),
     ShipCountry NVARCHAR(255),
-    TerritoryID INT
+    TerritoryID NVARCHAR(20),
 );
 
 
@@ -113,7 +114,7 @@ IF OBJECT_ID('dbo.Staging_Products', 'U') IS NOT NULL
     DROP TABLE dbo.Staging_Products;
 CREATE TABLE dbo.Staging_Products (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
-    ProductID INT,
+    ProductID INT UNIQUE,
     ProductName NVARCHAR(255),
     SupplierID INT,
     CategoryID INT,
@@ -130,7 +131,7 @@ IF OBJECT_ID('dbo.Staging_Region', 'U') IS NOT NULL
     DROP TABLE dbo.Staging_Region;
 CREATE TABLE dbo.Staging_Region (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
-    RegionID INT,
+    RegionID INT UNIQUE,
     RegionDescription NVARCHAR(255),
     RegionCategory NVARCHAR(255),
     RegionImportance NVARCHAR(255)
@@ -141,7 +142,7 @@ IF OBJECT_ID('dbo.Staging_Shippers', 'U') IS NOT NULL
     DROP TABLE dbo.Staging_Shippers;
 CREATE TABLE dbo.Staging_Shippers (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
-    ShipperID INT,
+    ShipperID INT UNIQUE,
     CompanyName NVARCHAR(255),
     Phone NVARCHAR(255)
 );
@@ -151,7 +152,7 @@ IF OBJECT_ID('dbo.Staging_Suppliers', 'U') IS NOT NULL
     DROP TABLE dbo.Staging_Suppliers;
 CREATE TABLE dbo.Staging_Suppliers (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
-    SupplierID INT,
+    SupplierID INT UNIQUE,
     CompanyName NVARCHAR(255),
     ContactName NVARCHAR(255),
     ContactTitle NVARCHAR(255),
@@ -170,8 +171,52 @@ IF OBJECT_ID('dbo.Staging_Territories', 'U') IS NOT NULL
     DROP TABLE dbo.Staging_Territories;
 CREATE TABLE dbo.Staging_Territories (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
-    TerritoryID NVARCHAR(20),
+    TerritoryID NVARCHAR(20) UNIQUE,
     TerritoryDescription NVARCHAR(255),
     TerritoryCode NVARCHAR(5),  --na vsyaki 5)
     RegionID INT
 );
+
+
+USE ORDER_DDS;
+GO
+
+ALTER TABLE Staging_Employees
+ADD CONSTRAINT FK_Employees_ReportsTo
+FOREIGN KEY (ReportsTo) REFERENCES Staging_Employees(EmployeeID);
+
+ALTER TABLE Staging_OrderDetails
+ADD CONSTRAINT FK_OrderDetails_OrderID
+FOREIGN KEY (OrderID) REFERENCES Staging_Orders(OrderID);
+
+ALTER TABLE Staging_OrderDetails
+ADD CONSTRAINT FK_OrderDetails_ProductID
+FOREIGN KEY (ProductID) REFERENCES Staging_Products(ProductID);
+
+ALTER TABLE Staging_Orders
+ADD CONSTRAINT FK_Orders_Customers
+FOREIGN KEY (CustomerID) REFERENCES Staging_Customers(CustomerID);
+
+ALTER TABLE Staging_Orders
+ADD CONSTRAINT FK_Orders_Employees
+FOREIGN KEY (EmployeeID) REFERENCES Staging_Employees(EmployeeID);
+
+ALTER TABLE Staging_Orders
+ADD CONSTRAINT FK_Orders_ShipVia
+FOREIGN KEY (ShipVia) REFERENCES Staging_Shippers(ShipperID);
+
+ALTER TABLE Staging_Orders
+ADD CONSTRAINT FK_Orders_Territories
+FOREIGN KEY (TerritoryID) REFERENCES Staging_Territories(TerritoryID);
+
+ALTER TABLE Staging_Products
+ADD CONSTRAINT FK_Products_Categories
+FOREIGN KEY (CategoryID) REFERENCES Staging_Categories(CategoryID);
+
+ALTER TABLE Staging_Products
+ADD CONSTRAINT FK_Products_Suppliers
+FOREIGN KEY (SupplierID) REFERENCES Staging_Suppliers(SupplierID);
+
+ALTER TABLE Staging_Territories
+ADD CONSTRAINT FK_Territories_Region
+FOREIGN KEY (RegionID) REFERENCES Staging_Region(RegionID);
