@@ -104,7 +104,11 @@ CREATE TABLE dbo.Staging_Orders (
     ShipRegion NVARCHAR(255),
     ShipPostalCode NVARCHAR(20),
     ShipCountry NVARCHAR(255),
-    TerritoryID INT
+    TerritoryID INT,
+    FOREIGN KEY (CustomerID) REFERENCES Staging_Customers(CustomerID),
+    FOREIGN KEY (EmployeeID) REFERENCES Staging_Employees(EmployeeID),
+    FOREIGN KEY (ShipVia) REFERENCES Staging_Shippers(ShipperID),
+    FOREIGN KEY (TerritoryID) REFERENCES Staging_Territories(TerritoryID)
 );
 
 
