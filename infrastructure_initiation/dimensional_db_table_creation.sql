@@ -143,6 +143,28 @@ CREATE TABLE dbo.DimSuppliers_SCD4 (
 );
 GO
 
+-- DimSuppliers_History Table (SCD4 History)
+CREATE TABLE dbo.DimSuppliers_History (
+    SupplierID_History_SK_PK INT IDENTITY(1,1) PRIMARY KEY,
+    SORKey INT FOREIGN KEY REFERENCES dbo.Dim_SOR(SORKey),
+    SupplierID_NK INT,
+    CompanyName NVARCHAR(255),
+    ContactName NVARCHAR(255),
+    ContactTitle NVARCHAR(255),
+    [Address] NVARCHAR(255),
+    City NVARCHAR(255),
+    Region NVARCHAR(255),
+    PostalCode NVARCHAR(20),
+    Country NVARCHAR(255),
+    Phone NVARCHAR(50),
+    Fax NVARCHAR(50),
+    HomePage NVARCHAR(MAX),
+    ValidFrom DATE,
+    EndDate DATE
+);
+GO
+
+
 -- DimTerritories
 CREATE TABLE dbo.DimTerritories_SCD3 (
     TerritoryID_SK_PK INT IDENTITY(1,1) PRIMARY KEY,
