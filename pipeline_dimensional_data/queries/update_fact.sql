@@ -1,4 +1,11 @@
-USE ORDER_DDS;
+
+DECLARE @DatabaseName NVARCHAR(128) = 'ORDER_DDS';
+DECLARE @SchemaName NVARCHAR(128) = 'dbo';
+DECLARE @TableName NVARCHAR(128) = 'FactOrders';
+DECLARE @start_date DATE = '2020-01-01';
+DECLARE @end_date DATE = '2025-12-31';
+
+USE [ORDER_DDS];
 GO
 
 INSERT INTO dbo.FactOrders (
@@ -15,31 +22,29 @@ INSERT INTO dbo.FactOrders (
     UnitPrice,
     Discount
 )
-SELECT 
-    o.OrderID,
+SELECT
+    so.OrderID,
     dp.ProductID_SK_PK,
     dc.CustomerID_Table_SK,
     de.EmployeeID_SK_PK,
     ds.ShipperID_SK_PK,
-    o.OrderDate,
-    o.RequiredDate,
-    o.ShippedDate,
-    o.Freight,
-    od.Quantity,
-    od.UnitPrice,
-    od.Discount
-FROM dbo.Staging_Orders o
-JOIN dbo.Staging_OrderDetails od
-    ON o.OrderID = od.OrderID
-JOIN dbo.DimCustomers_SCD2 dc
-    ON o.CustomerID = dc.CustomerID_NK AND dc.IsCurrent = 1
-JOIN dbo.DimEmployees_SCD1 de
-    ON o.EmployeeID = de.EmployeeID_NK
-JOIN dbo.DimShippers_SCD3 ds
-    ON o.ShipVia = ds.ShipperID_NK
-JOIN dbo.DimProducts_SCD4 dp
-    ON od.ProductID = dp.ProductID_NK
-JOIN dbo.Dim_SOR sor
-    ON sor.StagingTableName = 'Staging_Orders'
-   AND sor.TablePrimaryKeyColumn = 'OrderID';
-GO
+    so.OrderDate,
+    so.RequiredDate,
+    so.ShippedDate,
+    so.Freight,
+    sod.Quantity,
+    sod.UnitPrice,
+    sod.Discount
+FROM dbo.Staging_Orders AS so
+JOIN dbo.Staging_OrderDetails AS sod
+    ON so.OrderID = sod.OrderID
+JOIN dbo.DimCustomers_SCD2 AS dc
+    ON dc.CustomerID_NK = so.CustomerID
+    AND dc.IsCurrent = 1
+JOIN dbo.DimEmployees_SCD1 AS de
+    ON de.EmployeeID_NK = so.EmployeeID
+JOIN dbo.DimShippers_SCD3 AS ds
+    ON ds.ShipperID_NK = so.ShipVia
+JOIN dbo.DimProducts_SCD4 AS dp
+    ON dp.ProductID_NK = sod.ProductID
+WHERE so.OrderDate BETWEEN @start_date AND @end_date;
