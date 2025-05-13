@@ -38,3 +38,7 @@ def get_connection_string():
 
 def get_engine():
     return create_engine(get_connection_string())
+
+def read_sql_file(filepath):
+    with open(filepath, 'r') as f:
+        return f.read()
