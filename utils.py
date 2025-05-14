@@ -21,24 +21,39 @@ Functions:
 """
 import os
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
-
-
+from sqlalchemy import create_engine, text
+import time
 
 load_dotenv()
 
-def get_connection_string():
+def get_connection_string(database=None):
     server = os.getenv("SQL_SERVER")
-    database = os.getenv("SQL_DATABASE")
     username = os.getenv("SQL_USERNAME")
     password = os.getenv("SQL_PASSWORD")
     driver = os.getenv("SQL_DRIVER", "ODBC Driver 17 for SQL Server")
 
+    if database is None:
+        database = os.getenv("SQL_DATABASE")
+
     return f"mssql+pyodbc://{username}:{password}@{server}:1433/{database}?driver={driver.replace(' ', '+')}"
 
-def get_engine():
-    return create_engine(get_connection_string())
+def get_engine(database=None):
+    return create_engine(get_connection_string(database))
 
 def read_sql_file(filepath):
     with open(filepath, 'r') as f:
         return f.read()
+    
+def wait_until_database_exists(database_name, timeout=10, poll_interval=1):
+    engine = get_engine()
+    with engine.connect() as conn:
+        for i in range(timeout):
+            print(f"Checking for database: {database_name} (attempt {i + 1})")
+            result = conn.execute(text("SELECT name FROM sys.databases"))
+            all_dbs = [row[0] for row in result]
+            print("Databases found:", all_dbs)
+
+            if database_name in all_dbs:
+                return True
+            time.sleep(poll_interval)
+    return False
