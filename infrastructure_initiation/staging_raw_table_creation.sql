@@ -22,84 +22,6 @@ CREATE TABLE dbo.Staging_Customers (
     Fax NVARCHAR(255)
 );
 
--- Employees Table
-CREATE TABLE dbo.Staging_Employees (
-    staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
-    EmployeeID INT UNIQUE,
-    LastName NVARCHAR(255),
-    FirstName NVARCHAR(255),
-    Title NVARCHAR(255),
-    TitleOfCourtesy NVARCHAR(255),
-    BirthDate DATETIME,
-    HireDate DATETIME,
-    [Address] NVARCHAR(255),
-    City NVARCHAR(255),
-    Region NVARCHAR(255),
-    PostalCode NVARCHAR(20),
-    Country NVARCHAR(255),
-    HomePhone NVARCHAR(255),
-    Extension NVARCHAR(10),
-    Photo VARBINARY(MAX),
-    Notes NVARCHAR(MAX),
-    ReportsTo INT,
-    PhotoPath NVARCHAR(255)
-);
-
--- Order Details Table
-CREATE TABLE dbo.Staging_OrderDetails (
-    staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
-    OrderID INT UNIQUE,
-    ProductID INT,
-    UnitPrice DECIMAL(10,2),
-    Quantity SMALLINT,
-    Discount FLOAT,
-);
-
--- Staging Orders Table
-CREATE TABLE dbo.Staging_Orders (
-    staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
-    OrderID INT UNIQUE,
-    CustomerID NVARCHAR(5),
-    EmployeeID INT,
-    OrderDate DATETIME,
-    RequiredDate DATETIME,
-    ShippedDate DATETIME,
-    ShipVia INT,
-    Freight DECIMAL(10,2),
-    ShipName NVARCHAR(255),
-    ShipAddress NVARCHAR(255),
-    ShipCity NVARCHAR(255),
-    ShipRegion NVARCHAR(255),
-    ShipPostalCode NVARCHAR(20),
-    ShipCountry NVARCHAR(255),
-    TerritoryID NVARCHAR(20),
-);
-
-
--- Products Table
-CREATE TABLE dbo.Staging_Products (
-    staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
-    ProductID INT UNIQUE,
-    ProductName NVARCHAR(255),
-    SupplierID INT,
-    CategoryID INT,
-    QuantityPerUnit NVARCHAR(255),
-    UnitPrice DECIMAL(10,2),
-    UnitsInStock SMALLINT,
-    UnitsOnOrder SMALLINT,
-    ReorderLevel SMALLINT,
-    Discontinued BIT
-);
-
--- Region Table
-CREATE TABLE dbo.Staging_Region (
-    staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
-    RegionID INT UNIQUE,
-    RegionDescription NVARCHAR(255),
-    RegionCategory NVARCHAR(255),
-    RegionImportance NVARCHAR(255)
-);
-
 -- Shippers Table
 CREATE TABLE dbo.Staging_Shippers (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
@@ -134,43 +56,91 @@ CREATE TABLE dbo.Staging_Territories (
     RegionID INT
 );
 
--- Add foreign key constraints
-ALTER TABLE Staging_Employees
-ADD CONSTRAINT FK_Employees_ReportsTo
-FOREIGN KEY (ReportsTo) REFERENCES Staging_Employees(EmployeeID);
+-- Employees Table
+CREATE TABLE dbo.Staging_Employees (
+    staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
+    EmployeeID INT UNIQUE,
+    LastName NVARCHAR(255),
+    FirstName NVARCHAR(255),
+    Title NVARCHAR(255),
+    TitleOfCourtesy NVARCHAR(255),
+    BirthDate DATETIME,
+    HireDate DATETIME,
+    [Address] NVARCHAR(255),
+    City NVARCHAR(255),
+    Region NVARCHAR(255),
+    PostalCode NVARCHAR(20),
+    Country NVARCHAR(255),
+    HomePhone NVARCHAR(255),
+    Extension NVARCHAR(10),
+    Photo VARBINARY(MAX),
+    Notes NVARCHAR(MAX),
+    ReportsTo INT,
+    PhotoPath NVARCHAR(255),
+    CONSTRAINT FK_Employees_ReportsTo FOREIGN KEY (ReportsTo) REFERENCES dbo.Staging_Employees(EmployeeID)
+);
 
-ALTER TABLE Staging_OrderDetails
-ADD CONSTRAINT FK_OrderDetails_OrderID
-FOREIGN KEY (OrderID) REFERENCES Staging_Orders(OrderID);
+-- Staging Orders Table
+CREATE TABLE dbo.Staging_Orders (
+    staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
+    OrderID INT UNIQUE,
+    CustomerID NVARCHAR(5),
+    EmployeeID INT,
+    OrderDate DATETIME,
+    RequiredDate DATETIME,
+    ShippedDate DATETIME,
+    ShipVia INT,
+    Freight DECIMAL(10,2),
+    ShipName NVARCHAR(255),
+    ShipAddress NVARCHAR(255),
+    ShipCity NVARCHAR(255),
+    ShipRegion NVARCHAR(255),
+    ShipPostalCode NVARCHAR(20),
+    ShipCountry NVARCHAR(255),
+    TerritoryID NVARCHAR(20),
+    CONSTRAINT FK_Orders_Customers FOREIGN KEY (CustomerID) REFERENCES dbo.Staging_Customers(CustomerID),
+    CONSTRAINT FK_Orders_Employees FOREIGN KEY (EmployeeID) REFERENCES dbo.Staging_Employees(EmployeeID),
+    CONSTRAINT FK_Orders_ShipVia FOREIGN KEY (ShipVia) REFERENCES dbo.Staging_Shippers(ShipperID),
+    CONSTRAINT FK_Orders_Territories FOREIGN KEY (TerritoryID) REFERENCES dbo.Staging_Territories(TerritoryID)
+);
 
-ALTER TABLE Staging_OrderDetails
-ADD CONSTRAINT FK_OrderDetails_ProductID
-FOREIGN KEY (ProductID) REFERENCES Staging_Products(ProductID);
+-- Products Table
+CREATE TABLE dbo.Staging_Products (
+    staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
+    ProductID INT UNIQUE,
+    ProductName NVARCHAR(255),
+    SupplierID INT,
+    CategoryID INT,
+    QuantityPerUnit NVARCHAR(255),
+    UnitPrice DECIMAL(10,2),
+    UnitsInStock SMALLINT,
+    UnitsOnOrder SMALLINT,
+    ReorderLevel SMALLINT,
+    Discontinued BIT,
+    CONSTRAINT FK_Products_Categories FOREIGN KEY (CategoryID) REFERENCES dbo.Staging_Categories(CategoryID),
+    CONSTRAINT FK_Products_Suppliers FOREIGN KEY (SupplierID) REFERENCES dbo.Staging_Suppliers(SupplierID)
+);
 
-ALTER TABLE Staging_Orders
-ADD CONSTRAINT FK_Orders_Customers
-FOREIGN KEY (CustomerID) REFERENCES Staging_Customers(CustomerID);
 
-ALTER TABLE Staging_Orders
-ADD CONSTRAINT FK_Orders_Employees
-FOREIGN KEY (EmployeeID) REFERENCES Staging_Employees(EmployeeID);
+-- Order Details Table
+CREATE TABLE dbo.Staging_OrderDetails (
+    staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
+    OrderID INT UNIQUE,
+    ProductID INT,
+    UnitPrice DECIMAL(10,2),
+    Quantity SMALLINT,
+    Discount FLOAT,
+    CONSTRAINT FK_OrderDetails_OrderID FOREIGN KEY (OrderID) REFERENCES dbo.Staging_Orders(OrderID),
+    CONSTRAINT FK_OrderDetails_ProductID FOREIGN KEY (ProductID) REFERENCES dbo.Staging_Products(ProductID)
+);
 
-ALTER TABLE Staging_Orders
-ADD CONSTRAINT FK_Orders_ShipVia
-FOREIGN KEY (ShipVia) REFERENCES Staging_Shippers(ShipperID);
+-- Region Table
+CREATE TABLE dbo.Staging_Region (
+    staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
+    RegionID INT UNIQUE,
+    RegionDescription NVARCHAR(255),
+    RegionCategory NVARCHAR(255),
+    RegionImportance NVARCHAR(255)
+);
 
-ALTER TABLE Staging_Orders
-ADD CONSTRAINT FK_Orders_Territories
-FOREIGN KEY (TerritoryID) REFERENCES Staging_Territories(TerritoryID);
 
-ALTER TABLE Staging_Products
-ADD CONSTRAINT FK_Products_Categories
-FOREIGN KEY (CategoryID) REFERENCES Staging_Categories(CategoryID);
-
-ALTER TABLE Staging_Products
-ADD CONSTRAINT FK_Products_Suppliers
-FOREIGN KEY (SupplierID) REFERENCES Staging_Suppliers(SupplierID);
-
-ALTER TABLE Staging_Territories
-ADD CONSTRAINT FK_Territories_Region
-FOREIGN KEY (RegionID) REFERENCES Staging_Region(RegionID);
