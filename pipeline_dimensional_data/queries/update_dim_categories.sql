@@ -1,5 +1,4 @@
 USE ORDER_DDS;
-GO
 
 MERGE INTO dbo.DimCategories_SCD1 AS TARGET
 USING (
@@ -36,7 +35,6 @@ WHEN NOT MATCHED THEN
         0, 
         GETDATE()
     );
-GO
 
 
 UPDATE TARGET
@@ -45,4 +43,3 @@ FROM dbo.DimCategories_SCD1 TARGET
 LEFT JOIN dbo.Staging_Categories SC
     ON TARGET.CategoryID_NK = SC.CategoryID
 WHERE SC.CategoryID IS NULL AND TARGET.IsDeleted = 0;
-GO

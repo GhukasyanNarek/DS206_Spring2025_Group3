@@ -1,5 +1,5 @@
 USE ORDER_DDS;
-GO
+
 
 INSERT INTO dbo.DimProducts_History (
     SORKey,
@@ -48,4 +48,4 @@ WHERE
     ISNULL(dp.UnitsOnOrder, 0)         <> ISNULL(sp.UnitsOnOrder, 0) OR
     ISNULL(dp.ReorderLevel, 0)         <> ISNULL(sp.ReorderLevel, 0) OR
     ISNULL(dp.Discontinued, 0)         <> ISNULL(sp.Discontinued, 0);
-GO
+

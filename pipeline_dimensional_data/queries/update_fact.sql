@@ -6,7 +6,7 @@ DECLARE @start_date DATE = '2020-01-01';
 DECLARE @end_date DATE = '2025-12-31';
 
 USE [ORDER_DDS];
-GO
+
 
 INSERT INTO dbo.FactOrders (
     OrderID_FK,

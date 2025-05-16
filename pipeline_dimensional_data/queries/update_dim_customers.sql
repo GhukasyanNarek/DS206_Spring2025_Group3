@@ -1,5 +1,5 @@
 USE ORDER_DDS;
-GO
+
 
 UPDATE TARGET
 SET 
@@ -28,7 +28,7 @@ WHERE TARGET.IsCurrent = 1 AND (
     ISNULL(TARGET.Phone, '')          <> ISNULL(SOURCE.Phone, '') OR
     ISNULL(TARGET.Fax, '')            <> ISNULL(SOURCE.Fax, '')
 );
-GO
+
 
 INSERT INTO dbo.DimCustomers_SCD2 (
     SORKey,
@@ -84,4 +84,4 @@ WHERE tgt.CustomerID_NK IS NULL
         ISNULL(tgt.Phone, '')          <> ISNULL(sc.Phone, '') OR
         ISNULL(tgt.Fax, '')            <> ISNULL(sc.Fax, '')
    );
-GO
+
