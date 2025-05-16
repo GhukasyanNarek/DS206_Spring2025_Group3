@@ -23,7 +23,7 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 import time
-
+import pandas as pd
 load_dotenv()
 
 def get_connection_string(database=None):
@@ -57,3 +57,13 @@ def wait_until_database_exists(database_name, timeout=10, poll_interval=1):
                 return True
             time.sleep(poll_interval)
     return False
+
+def safe_date(value):
+    try:
+        df = pd.to_datetime(value, errors='coerce')
+        if pd.isna(df) or df.year <  1753: # SQL Server minimum date as Professor mentioned multiple times
+            return None
+        return df
+    except Exception as e:
+        print(f"Error parsing date: {value}, Error: {e}")
+        return None
