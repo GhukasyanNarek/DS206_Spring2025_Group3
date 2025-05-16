@@ -1,5 +1,5 @@
 USE ORDER_DDS;
-GO
+
 
 MERGE INTO dbo.DimEmployees_SCD1 AS TARGET
 USING (
@@ -96,7 +96,7 @@ WHEN NOT MATCHED THEN
         0,
         GETDATE()
     );
-GO
+
 
 UPDATE TARGET
 SET IsDeleted = 1
@@ -105,4 +105,4 @@ LEFT JOIN dbo.Staging_Employees se
     ON TARGET.EmployeeID_NK = se.EmployeeID
 WHERE se.EmployeeID IS NULL
   AND TARGET.IsDeleted = 0;
-GO
+

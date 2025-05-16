@@ -1,5 +1,5 @@
 USE ORDER_DDS;
-GO
+
 
 MERGE INTO dbo.DimSuppliers_History AS TARGET
 USING (

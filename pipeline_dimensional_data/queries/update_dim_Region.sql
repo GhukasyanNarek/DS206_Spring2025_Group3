@@ -1,5 +1,5 @@
 USE ORDER_DDS;
-GO
+
 
 MERGE INTO dbo.DimRegion_SCD1 AS TARGET
 USING (
@@ -34,4 +34,4 @@ WHEN NOT MATCHED THEN
         SOURCE.RegionCategory,
         SOURCE.RegionImportance
     );
-GO
+

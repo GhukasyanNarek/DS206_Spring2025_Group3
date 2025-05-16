@@ -1,5 +1,5 @@
 USE ORDER_DDS;
-GO
+
 
 
 UPDATE TARGET
@@ -26,7 +26,7 @@ ON TARGET.ShipperID_NK = SOURCE.ShipperID
 WHERE
     ISNULL(TARGET.CompanyName_Current, '') <> ISNULL(SOURCE.CompanyName, '') OR
     ISNULL(TARGET.Phone_Current, '')       <> ISNULL(SOURCE.Phone, '');
-GO
+
 
 
 INSERT INTO dbo.DimShippers_SCD3 (
@@ -51,4 +51,4 @@ JOIN dbo.Dim_SOR sor
 LEFT JOIN dbo.DimShippers_SCD3 ds
     ON ds.ShipperID_NK = ss.ShipperID
 WHERE ds.ShipperID_NK IS NULL;
-GO
+

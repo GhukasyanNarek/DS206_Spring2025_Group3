@@ -5,7 +5,7 @@ DECLARE @start_date DATE = '2020-01-01';
 DECLARE @end_date DATE = '2025-12-31';
 
 USE [ORDER_DDS];
-GO
+
 
 INSERT INTO dbo.fact_error (
     OrderID,
@@ -65,4 +65,4 @@ WHERE so.OrderDate BETWEEN @start_date AND @end_date
         ds.ShipperID_SK_PK IS NULL OR
         dp.ProductID_SK_PK IS NULL
   );
-GO
+

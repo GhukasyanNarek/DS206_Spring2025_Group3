@@ -1,5 +1,5 @@
 USE ORDER_DDS;
-GO
+
 
 UPDATE TARGET
 SET 
@@ -25,7 +25,7 @@ ON TARGET.TerritoryID_NK = SOURCE.TerritoryID
 WHERE 
     ISNULL(TARGET.TerritoryDescription_Current, '') <> ISNULL(SOURCE.TerritoryDescription, '') OR
     ISNULL(TARGET.RegionID_Current, -1)             <> ISNULL(SOURCE.RegionID, -1);
-GO
+
 
 
 INSERT INTO dbo.DimTerritories_SCD3 (
@@ -50,4 +50,4 @@ JOIN dbo.Dim_SOR sor
 LEFT JOIN dbo.DimTerritories_SCD3 dt
     ON dt.TerritoryID_NK = st.TerritoryID
 WHERE dt.TerritoryID_NK IS NULL;
-GO
+

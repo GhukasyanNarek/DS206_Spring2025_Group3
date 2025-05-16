@@ -1,5 +1,5 @@
 USE ORDER_DDS;
-GO
+
 
 
 -- Dim_SOR Table
@@ -66,10 +66,30 @@ CREATE TABLE dbo.DimEmployees_SCD1 (
     CONSTRAINT PK_Employees_SCD1 PRIMARY KEY (EmployeeID_SK_PK)
 );
 
+-- DimSuppliers
+CREATE TABLE dbo.DimSuppliers_SCD4 (
+    SupplierID_SK_PK INT IDENTITY(1,1) PRIMARY KEY,
+    SORKey INT FOREIGN KEY REFERENCES dbo.Dim_SOR(SORKey),
+    SupplierID_NK INT NOT NULL UNIQUE,
+    CompanyName NVARCHAR(255),
+    ContactName NVARCHAR(255),
+    ContactTitle NVARCHAR(255),
+    [Address] NVARCHAR(255),
+    City NVARCHAR(255),
+    Region NVARCHAR(255),
+    PostalCode NVARCHAR(20),
+    Country NVARCHAR(255),
+    Phone NVARCHAR(50),
+    Fax NVARCHAR(50),
+    HomePage NVARCHAR(MAX),
+    LastUpdated DATE NULL
+);
+
+
 CREATE TABLE dbo.DimProducts_SCD4 (
     ProductID_SK_PK INT IDENTITY(1,1) PRIMARY KEY,
     SORKey INT FOREIGN KEY REFERENCES dbo.Dim_SOR(SORKey),
-    ProductID_NK INT NOT NULL,
+    ProductID_NK INT NOT NULL UNIQUE,
     ProductID_DURABLE_SK NVARCHAR(10) UNIQUE,
     ProductName NVARCHAR(255),
     SupplierID INT FOREIGN KEY REFERENCES dbo.DimSuppliers_SCD4(SupplierID_SK_PK),
@@ -121,27 +141,10 @@ CREATE TABLE dbo.DimShippers_SCD3 (
     Phone_Prior NVARCHAR(50),
     LastUpdated DATE NULL
 );
-GO
 
--- DimSuppliers
-CREATE TABLE dbo.DimSuppliers_SCD4 (
-    SupplierID_SK_PK INT IDENTITY(1,1) PRIMARY KEY,
-    SORKey INT FOREIGN KEY REFERENCES dbo.Dim_SOR(SORKey),
-    SupplierID_NK INT NOT NULL UNIQUE,
-    CompanyName NVARCHAR(255),
-    ContactName NVARCHAR(255),
-    ContactTitle NVARCHAR(255),
-    [Address] NVARCHAR(255),
-    City NVARCHAR(255),
-    Region NVARCHAR(255),
-    PostalCode NVARCHAR(20),
-    Country NVARCHAR(255),
-    Phone NVARCHAR(50),
-    Fax NVARCHAR(50),
-    HomePage NVARCHAR(MAX),
-    LastUpdated DATE NULL
-);
-GO
+
+
+
 
 -- DimSuppliers_History Table (SCD4 History)
 CREATE TABLE dbo.DimSuppliers_History (
@@ -162,7 +165,7 @@ CREATE TABLE dbo.DimSuppliers_History (
     ValidFrom DATE,
     EndDate DATE
 );
-GO
+
 
 
 -- DimTerritories
@@ -175,7 +178,7 @@ CREATE TABLE dbo.DimTerritories_SCD3 (
     RegionID_Prior INT,
     LastUpdated DATE NULL
 );
-GO
+
 
 -- FactOrders 
 CREATE TABLE dbo.FactOrders (
@@ -197,4 +200,15 @@ CREATE TABLE dbo.FactOrders (
     FOREIGN KEY (EmployeeID_FK) REFERENCES dbo.DimEmployees_SCD1(EmployeeID_SK_PK),
     FOREIGN KEY (ShipperID_FK) REFERENCES dbo.DimShippers_SCD3(ShipperID_SK_PK)
 );
-GO
+
+-- Seed Dim_SOR
+INSERT INTO dbo.Dim_SOR (StagingTableName, TablePrimaryKeyColumn)
+VALUES 
+    ('Staging_Categories', 'CategoryID'),
+    ('Staging_Customers', 'CustomerID'),
+    ('Staging_Employees', 'EmployeeID'),
+    ('Staging_Products', 'ProductID'),
+    ('Staging_Suppliers', 'SupplierID'),
+    ('Staging_Region', 'RegionID'),
+    ('Staging_Shippers', 'ShipperID'),
+    ('Staging_Territories', 'TerritoryID');

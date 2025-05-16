@@ -1,5 +1,5 @@
 USE ORDER_DDS;
-GO
+
 
 MERGE INTO dbo.DimSuppliers_SCD4 AS TARGET
 USING (
@@ -71,4 +71,4 @@ WHEN NOT MATCHED THEN
         SOURCE.HomePage,
         GETDATE()
     );
-GO
+
