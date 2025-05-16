@@ -73,7 +73,6 @@ CREATE TABLE dbo.Staging_Employees (
     Country NVARCHAR(255),
     HomePhone NVARCHAR(255),
     Extension NVARCHAR(10),
-    Photo VARBINARY(MAX),
     Notes NVARCHAR(MAX),
     ReportsTo INT,
     PhotoPath NVARCHAR(255),
@@ -125,11 +124,12 @@ CREATE TABLE dbo.Staging_Products (
 -- Order Details Table
 CREATE TABLE dbo.Staging_OrderDetails (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
-    OrderID INT UNIQUE,
+    OrderID INT,
     ProductID INT,
     UnitPrice DECIMAL(10,2),
     Quantity SMALLINT,
     Discount FLOAT,
+    CONSTRAINT PK_Staging_OrderDetails UNIQUE (OrderID, ProductID),
     CONSTRAINT FK_OrderDetails_OrderID FOREIGN KEY (OrderID) REFERENCES dbo.Staging_Orders(OrderID),
     CONSTRAINT FK_OrderDetails_ProductID FOREIGN KEY (ProductID) REFERENCES dbo.Staging_Products(ProductID)
 );
