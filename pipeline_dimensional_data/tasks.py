@@ -223,6 +223,7 @@ def load_staging_orderdetails(file_path: str) -> dict:
         cursor = conn.cursor()
         inserted, skipped = 0, 0
 
+        df["OrderID"] = df["OrderID"].astype(int)
         for _, row in df.iterrows():
             try:
                 cursor.execute("""
@@ -407,12 +408,27 @@ def load_staging_employees(file_path: str) -> dict:
         cursor = conn.cursor()
         inserted, skipped = 0, 0
 
+        df["ReportsTo"] = pd.to_numeric(df["ReportsTo"], errors="coerce")
+        valid_reports_to = df["EmployeeID"].unique()
+        df["ReportsTo"] = df["ReportsTo"].where(
+        df["ReportsTo"].isin(valid_reports_to), None)
+        df = df.sort_values(by="ReportsTo", na_position="first")
+        columns = [
+            "EmployeeID", "LastName", "FirstName", "Title", "TitleOfCourtesy",
+            "BirthDate", "HireDate", "Address", "City", "Region", "PostalCode",
+            "Country", "HomePhone", "Extension", "Notes", "ReportsTo", "PhotoPath"
+        ]
+        df = df[columns]
         for _, row in df.iterrows():
             try:
-                cursor.execute("""INSERT INTO dbo.Staging_Employees (EmployeeID, LastName, FirstName, Title, TitleOfCourtesy,
-                        BirthDate, HireDate, Address, City, Region, PostalCode, Country, HomePhone,
-                        Extension, Photo, Notes, ReportsTo, PhotoPath)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) """, *row)
+                row_data = tuple([val if pd.notnull(val) else None for val in row])
+                cursor.execute("""
+                    INSERT INTO dbo.Staging_Employees (
+                        EmployeeID, LastName, FirstName, Title, TitleOfCourtesy,
+                        BirthDate, HireDate, Address, City, Region, PostalCode, Country,
+                        HomePhone, Extension, Notes, ReportsTo, PhotoPath
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", row_data)
                 inserted += 1
             except Exception as e:
                 logger.warning("Skipping EmployeeID {} due to error: {}", row["EmployeeID"], e)
@@ -424,7 +440,6 @@ def load_staging_employees(file_path: str) -> dict:
         logger.error("Failed to load employees: {}", e)
         return {"success": False, "error": str(e)}
 
-
 def load_all_staging_tables(file_path: str) -> dict:
     loaders = [
         load_staging_categories,
@@ -432,11 +447,11 @@ def load_all_staging_tables(file_path: str) -> dict:
         load_staging_suppliers,
         load_staging_employees,
         load_staging_products,
+        load_staging_shippers,
+        load_staging_territories,
         load_staging_orders,
         load_staging_orderdetails,
-        load_staging_shippers,
-        load_staging_region,
-        load_staging_territories
+        load_staging_region
     ]
 
     for loader in loaders:
