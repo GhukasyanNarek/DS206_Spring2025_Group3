@@ -24,6 +24,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 import time
 import pandas as pd
+import uuid
 load_dotenv()
 
 def get_connection_string(database=None):
@@ -67,3 +68,7 @@ def safe_date(value):
     except Exception as e:
         print(f"Error parsing date: {value}, Error: {e}")
         return None
+    
+def generate_execution_id():
+    """Generate a unique UUID for tracking pipeline executions."""
+    return str(uuid.uuid4())
