@@ -4,4 +4,4 @@ This log file captures the execution details of the `ORDER_DDS` pipeline, which 
 It includes information about the pipeline's initialization, validation, database setup, ETL flow, staging table operations, and dimension updates.
 
 ## Log Level
-This is only taking logs with INFO and higher levels. So, no warnings or traces
+This file acts as a log dump and puts every level of log inside it (Trace, Warning, Info, etc)
