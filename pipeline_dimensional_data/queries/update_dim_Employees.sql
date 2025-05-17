@@ -1,10 +1,8 @@
 USE ORDER_DDS;
 
-
 MERGE INTO dbo.DimEmployees_SCD1 AS TARGET
 USING (
     SELECT 
-        se.staging_raw_id,
         se.EmployeeID,
         se.LastName,
         se.FirstName,
@@ -19,15 +17,14 @@ USING (
         se.Country,
         se.HomePhone,
         se.Extension,
-        se.Photo,
         se.Notes,
         se.ReportsTo,
         se.PhotoPath,
         sor.SORKey
     FROM dbo.Staging_Employees se
     JOIN dbo.Dim_SOR sor
-      ON sor.StagingTableName = 'Staging_Employees'
-     AND sor.TablePrimaryKeyColumn = 'EmployeeID'
+        ON sor.StagingTableName = 'Staging_Employees'
+        AND sor.TablePrimaryKeyColumn = 'EmployeeID'
 ) AS SOURCE
 ON TARGET.EmployeeID_NK = SOURCE.EmployeeID
 WHEN MATCHED THEN
@@ -45,7 +42,6 @@ WHEN MATCHED THEN
         TARGET.Country = SOURCE.Country,
         TARGET.HomePhone = SOURCE.HomePhone,
         TARGET.Extension = SOURCE.Extension,
-        TARGET.Photo = SOURCE.Photo,
         TARGET.Notes = SOURCE.Notes,
         TARGET.ReportsTo = SOURCE.ReportsTo,
         TARGET.PhotoPath = SOURCE.PhotoPath,
@@ -67,7 +63,6 @@ WHEN NOT MATCHED THEN
         Country,
         HomePhone,
         Extension,
-        Photo,
         Notes,
         ReportsTo,
         PhotoPath,
@@ -89,7 +84,6 @@ WHEN NOT MATCHED THEN
         SOURCE.Country,
         SOURCE.HomePhone,
         SOURCE.Extension,
-        SOURCE.Photo,
         SOURCE.Notes,
         SOURCE.ReportsTo,
         SOURCE.PhotoPath,
@@ -97,12 +91,12 @@ WHEN NOT MATCHED THEN
         GETDATE()
     );
 
-
+-- Soft-delete logic
 UPDATE TARGET
-SET IsDeleted = 1
+SET IsDeleted = 1,
+    ValidFrom = GETDATE()
 FROM dbo.DimEmployees_SCD1 TARGET
 LEFT JOIN dbo.Staging_Employees se
     ON TARGET.EmployeeID_NK = se.EmployeeID
 WHERE se.EmployeeID IS NULL
   AND TARGET.IsDeleted = 0;
-

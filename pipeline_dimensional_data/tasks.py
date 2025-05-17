@@ -31,26 +31,119 @@ def read_sql_file(path):
     with open(path, 'r') as f:
         return f.read()
 
-def execute_sql_file(db, sql_path, validate=False, validation_query=""):
-    """
-    Executes a SQL file against the specified database using pyodbc.
-    If `validate` is True, it will validate the execution by running a validation query at the end.
-    """
+# def execute_sql_file(db, sql_path, validate=False, validation_query=""):
+#     """
+#     Executes a SQL file against the specified database using pyodbc.
+#     If `validate` is True, it will validate the execution by running a validation query at the end.
+#     """
+#     try:
+#         logger.info(f"Connecting to {db}...")
+#         conn = get_pyodbc_connection(db)
+#         cursor = conn.cursor()
+
+#         sql = read_sql_file(sql_path)
+#         statements = [stmt.strip() for stmt in sql.split(";") if stmt.strip()]
+
+#         for stmt in statements:
+#             logger.info("Executing SQL: {}", stmt)
+#             try:
+#                 cursor.execute(stmt)
+#             except Exception as e:
+#                 logger.error("Execution failed: {}\nError: {}", stmt, e)
+#                 return {"success": False, "error": str(e)}
+
+#         if validate and validation_query:
+#             logger.info("Running validation query...")
+#             cursor.execute(validation_query)
+#             if cursor.fetchone():
+#                 logger.info("Validation passed.")
+#                 return {"success": True}
+#             else:
+#                 logger.error("Validation failed.")
+#                 return {"success": False}
+
+#         logger.info("SQL file executed successfully.")
+#         return {"success": True}
+#     except Exception as e:
+#         logger.error("Connection or execution error: {}", e)
+#         return {"success": False, "error": str(e)}
+#     finally:
+#         conn.close()
+
+
+# def execute_sql_file(db, sql_path, validate=False, validation_query="", require_rows=False):
+#     """
+#     Executes a SQL file against the specified database using pyodbc.
+    
+#     Args:
+#         db (str): Database name to connect to.
+#         sql_path (str): Path to the .sql file to execute.
+#         validate (bool): Whether to run a post-validation query.
+#         validation_query (str): SQL to run for validation.
+#         require_rows (bool): If True, will fail if no rows are inserted during INSERT statements.
+
+#     Returns:
+#         dict: {"success": True} on success, or {"success": False, "error": "..."} on failure.
+#     """
+#     try:
+#         logger.info(f"Connecting to {db}...")
+#         conn = get_pyodbc_connection(db)
+#         cursor = conn.cursor()
+
+#         sql = read_sql_file(sql_path)
+#         statements = [stmt.strip() for stmt in sql.split(";") if stmt.strip()]
+
+#         affected_rows_total = 0
+
+#         for stmt in statements:
+#             logger.info("Executing SQL: {}", stmt)
+#             try:
+#                 cursor.execute(stmt)
+#                 if stmt.lower().startswith("insert"):
+#                     logger.info("Rows affected: {}", cursor.rowcount)
+#                     affected_rows_total += cursor.rowcount
+#             except Exception as e:
+#                 logger.error("Execution failed: {}\nError: {}", stmt, e)
+#                 return {"success": False, "error": str(e)}
+
+#         if require_rows and affected_rows_total == 0:
+#             logger.warning("All INSERT statements executed but no rows were inserted.")
+#             return {"success": False, "error": "No rows inserted into target table."}
+
+#         if validate and validation_query:
+#             logger.info("Running validation query...")
+#             cursor.execute(validation_query)
+#             if cursor.fetchone():
+#                 logger.info("Validation passed.")
+#                 return {"success": True}
+#             else:
+#                 logger.error("Validation failed.")
+#                 return {"success": False}
+
+#         logger.info("SQL file executed successfully.")
+#         return {"success": True}
+#     except Exception as e:
+#         logger.error("Connection or execution error: {}", e)
+#         return {"success": False, "error": str(e)}
+#     finally:
+#         conn.close()
+
+
+def execute_sql_file(db, sql_path, validate=False, validation_query="", require_rows=False):
     try:
         logger.info(f"Connecting to {db}...")
         conn = get_pyodbc_connection(db)
         cursor = conn.cursor()
 
         sql = read_sql_file(sql_path)
-        statements = [stmt.strip() for stmt in sql.split(";") if stmt.strip()]
 
-        for stmt in statements:
-            logger.info("Executing SQL: {}", stmt)
-            try:
-                cursor.execute(stmt)
-            except Exception as e:
-                logger.error("Execution failed: {}\nError: {}", stmt, e)
-                return {"success": False, "error": str(e)}
+        logger.info("Executing full SQL file...")
+        cursor.execute(sql)
+        affected_rows_total = cursor.rowcount
+
+        if require_rows and affected_rows_total == 0:
+            logger.warning("INSERT executed but no rows were inserted.")
+            return {"success": False, "error": "No rows inserted into target table."}
 
         if validate and validation_query:
             logger.info("Running validation query...")
@@ -64,11 +157,14 @@ def execute_sql_file(db, sql_path, validate=False, validation_query=""):
 
         logger.info("SQL file executed successfully.")
         return {"success": True}
+
     except Exception as e:
-        logger.error("Connection or execution error: {}", e)
+        logger.error("Execution error: {}", e)
         return {"success": False, "error": str(e)}
     finally:
         conn.close()
+
+
 
 def create_dimensional_database(sql_path="infrastructure_initiation/dimensional_db_creation.sql"):
     """
@@ -473,3 +569,92 @@ def should_setup_schema():
         return False
     finally:
         conn.close()
+
+
+# def update_fact_orders():
+#     """
+#     Populate FactOrders table using the snapshot logic in update_fact.sql.
+#     """
+#     try:
+#         result = execute_sql_file(
+#             db="ORDER_DDS",
+#             sql_path="pipeline_dimensional_data/queries/update_fact.sql"
+#         )
+#         if result["success"]:
+#             logger.info("FactOrders snapshot fact table populated successfully.")
+#         else:
+#             logger.error("FactOrders update failed.")
+#         return result
+#     except Exception as e:
+#         logger.error("Error running update_fact_orders: {}", e)
+#         return {"success": False, "error": str(e)}
+
+
+def update_fact_orders():
+    """
+    Populate FactOrders table using the snapshot logic in update_fact.sql.
+    """
+    try:
+        result = execute_sql_file(
+            db="ORDER_DDS",
+            sql_path="pipeline_dimensional_data/queries/update_fact.sql",
+            require_rows=True  # 👈 ensure something was actually inserted
+        )
+        if result["success"]:
+            logger.info("FactOrders snapshot fact table populated successfully.")
+        else:
+            logger.error("FactOrders update failed.")
+        return result
+    except Exception as e:
+        logger.error("Error running update_fact_orders: {}", e)
+        return {"success": False, "error": str(e)}
+
+
+def update_dim_customers():
+    return execute_sql_file(
+        db="ORDER_DDS",
+        sql_path="pipeline_dimensional_data/queries/update_dim_customers.sql",
+        require_rows=True
+    )
+
+def update_dim_employees():
+    return execute_sql_file(
+        db="ORDER_DDS",
+        sql_path="pipeline_dimensional_data/queries/update_dim_employees.sql",
+        require_rows=True
+    )
+
+def update_dim_suppliers():
+    return execute_sql_file(
+        db="ORDER_DDS",
+        sql_path="pipeline_dimensional_data/queries/update_dim_suppliers.sql",
+        require_rows=True
+    )
+
+def update_dim_products():
+    return execute_sql_file(
+        db="ORDER_DDS",
+        sql_path="pipeline_dimensional_data/queries/update_dim_products.sql",
+        require_rows=True
+    )
+
+def update_dim_region():
+    return execute_sql_file(
+        db="ORDER_DDS",
+        sql_path="pipeline_dimensional_data/queries/update_dim_region.sql",
+        require_rows=True
+    )
+
+def update_dim_shippers():
+    return execute_sql_file(
+        db="ORDER_DDS",
+        sql_path="pipeline_dimensional_data/queries/update_dim_shippers.sql",
+        require_rows=True
+    )
+
+def update_dim_territories():
+    return execute_sql_file(
+        db="ORDER_DDS",
+        sql_path="pipeline_dimensional_data/queries/update_dim_territories.sql",
+        require_rows=True
+    )
