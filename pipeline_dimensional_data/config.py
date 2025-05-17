@@ -37,3 +37,10 @@ SOR_STAGING_TABLES = {
 # Time Parameters
 DEFAULT_START_DATE = "2000-01-01"
 DEFAULT_END_DATE = "9999-12-31"
+
+# Database metadata
+DATABASE_CONFIG = {
+    "driver": "ODBC Driver 17 for SQL Server",
+    "port": 1433,
+    "default_schema": "dbo"
+}
