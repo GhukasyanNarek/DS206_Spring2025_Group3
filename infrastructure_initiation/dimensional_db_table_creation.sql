@@ -1,5 +1,4 @@
 USE ORDER_DDS;
-GO
 
 EXEC sp_MSforeachtable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL';
 
@@ -10,7 +9,6 @@ FROM sys.foreign_keys;
 EXEC sp_executesql @sql;
 
 EXEC sp_MSforeachtable 'DROP TABLE ?';
-GO
 
 USE ORDER_DDS;
 
@@ -202,7 +200,7 @@ CREATE TABLE dbo.FactOrders (
     Quantity INT,
     UnitPrice DECIMAL(10,2),
     Discount FLOAT,
-    CONSTRAINT PK_FactOrders PRIMARY KEY (OrderID_FK),
+    CONSTRAINT PK_FactOrders PRIMARY KEY (OrderID_FK, ProductID_FK),
     FOREIGN KEY (TerritoryID_FK) REFERENCES dbo.DimTerritories_SCD3(TerritoryID_SK_PK),
     FOREIGN KEY (CustomerID_FK) REFERENCES dbo.DimCustomers_SCD2(CustomerID_SK_PK),
     FOREIGN KEY (ProductID_FK) REFERENCES dbo.DimProducts_SCD4(ProductID_SK_PK),

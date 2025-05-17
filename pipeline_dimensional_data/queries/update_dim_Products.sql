@@ -3,7 +3,7 @@ USE ORDER_DDS;
 
 INSERT INTO dbo.DimProducts_History (
     SORKey,
-    ProductID_NK,
+    ProductID_SK_FK,            -- ✅ Correct foreign key
     ProductID_DURABLE_SK,
     ProductName,
     SupplierID,
@@ -19,7 +19,7 @@ INSERT INTO dbo.DimProducts_History (
 )
 SELECT
     dp.SORKey,
-    dp.ProductID_NK,
+    dp.ProductID_SK_PK,        -- ✅ Get the surrogate key
     dp.ProductID_DURABLE_SK,
     dp.ProductName,
     dp.SupplierID,
@@ -45,6 +45,7 @@ WHERE
     ISNULL(dp.UnitsOnOrder, 0)         <> ISNULL(sp.UnitsOnOrder, 0) OR
     ISNULL(dp.ReorderLevel, 0)         <> ISNULL(sp.ReorderLevel, 0) OR
     ISNULL(dp.Discontinued, 0)         <> ISNULL(sp.Discontinued, 0);
+
 
 
 MERGE INTO dbo.DimProducts_SCD4 AS TARGET
