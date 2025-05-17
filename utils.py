@@ -25,6 +25,7 @@ from sqlalchemy import create_engine, text
 import time
 import pandas as pd
 import uuid
+from loguru import logger
 load_dotenv()
 
 def get_connection_string(database=None):
@@ -49,12 +50,11 @@ def wait_until_database_exists(database_name, timeout=10, poll_interval=1):
     engine = get_engine()
     with engine.connect() as conn:
         for i in range(timeout):
-            print(f"Checking for database: {database_name} (attempt {i + 1})")
+            logger.info(f"Checking for database: {database_name} (attempt {i + 1})")
             result = conn.execute(text("SELECT name FROM sys.databases"))
             all_dbs = [row[0] for row in result]
-            print("Databases found:", all_dbs)
-
             if database_name in all_dbs:
+                logger.info(f"Database {database_name} is available.")
                 return True
             time.sleep(poll_interval)
     return False
