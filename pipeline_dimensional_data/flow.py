@@ -13,8 +13,15 @@ from pipeline_dimensional_data.tasks import (
 )
 
 from loguru import logger
+from pipeline_dimensional_data.tasks import update_dim_categories
+from utils import generate_execution_id
+from general_logging import logger as configured_logger
 
 class DimensionalDataFlow:
+    def __init__(self):
+        self.execution_id = generate_execution_id()
+        configured_logger.bind(execution_id=self.execution_id)
+
     def exec(self, start_date, end_date):
         logger.info("ETL pipeline started.")
         create_staging_raw_tables()
