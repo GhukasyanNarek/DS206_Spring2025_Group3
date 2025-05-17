@@ -1,5 +1,38 @@
+-- USE ORDER_DDS;
+-- GO
+
+-- EXEC sp_MSforeachtable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL';
+
+-- DECLARE @sql NVARCHAR(MAX) = '';
+-- SELECT @sql += 'ALTER TABLE ' + QUOTENAME(OBJECT_SCHEMA_NAME(parent_object_id)) + '.' + QUOTENAME(OBJECT_NAME(parent_object_id)) 
+--             + ' DROP CONSTRAINT ' + QUOTENAME(name) + '; '
+-- FROM sys.foreign_keys;
+-- EXEC sp_executesql @sql;
+
+-- EXEC sp_MSforeachtable 'DROP TABLE ?';
+-- GO
+
+-- USE ORDER_DDS;
+
+-- -- Dim_SOR
+-- CREATE TABLE dbo.Dim_SOR (
+--     SORKey INT IDENTITY(1,1) PRIMARY KEY,
+--     StagingTableName NVARCHAR(255) NOT NULL,
+--     TablePrimaryKeyColumn NVARCHAR(255) NOT NULL
+-- );
+
+-- -- DimCategories_SCD1
+-- CREATE TABLE dbo.DimCategories_SCD1 (
+--     CategoryID_SK_PK INT IDENTITY(1,1) NOT NULL,
+--     CategoryID_NK INT NOT NULL,
+--     CategoryName NVARCHAR(255),
+--     Description NVARCHAR(MAX),
+--     IsDeleted BIT DEFAULT 0,                    
+--     ValidFrom DATE NULL,        
+--     CONSTRAINT PK_Categories_SCD1 PRIMARY KEY (CategoryID_SK_PK)
+-- );
+
 USE ORDER_DDS;
-GO
 
 EXEC sp_MSforeachtable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL';
 
@@ -10,9 +43,6 @@ FROM sys.foreign_keys;
 EXEC sp_executesql @sql;
 
 EXEC sp_MSforeachtable 'DROP TABLE ?';
-GO
-
-USE ORDER_DDS;
 
 -- Dim_SOR
 CREATE TABLE dbo.Dim_SOR (
@@ -31,6 +61,8 @@ CREATE TABLE dbo.DimCategories_SCD1 (
     ValidFrom DATE NULL,        
     CONSTRAINT PK_Categories_SCD1 PRIMARY KEY (CategoryID_SK_PK)
 );
+-- ... etc.
+
 
 -- DimSuppliers_SCD4
 CREATE TABLE dbo.DimSuppliers_SCD4 (
