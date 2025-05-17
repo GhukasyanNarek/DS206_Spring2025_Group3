@@ -38,7 +38,7 @@ SELECT
     sod.UnitPrice,
     sod.Discount,
     CASE 
-        WHEN dc.CustomerID_Table_SK IS NULL THEN 'Missing Customer'
+        WHEN dc.CustomerID_SK_PK IS NULL THEN 'Missing Customer'
         WHEN dp.ProductID_SK_PK IS NULL THEN 'Missing Product'
         WHEN de.EmployeeID_SK_PK IS NULL THEN 'Missing Employee'
         WHEN ds.ShipperID_SK_PK IS NULL THEN 'Missing Shipper'
@@ -60,7 +60,7 @@ JOIN dbo.Dim_SOR sor
    AND sor.TablePrimaryKeyColumn = 'OrderID'
 WHERE so.OrderDate BETWEEN @start_date AND @end_date
   AND (
-        dc.CustomerID_Table_SK IS NULL OR
+        dc.CustomerID_SK_PK IS NULL OR
         de.EmployeeID_SK_PK IS NULL OR
         ds.ShipperID_SK_PK IS NULL OR
         dp.ProductID_SK_PK IS NULL

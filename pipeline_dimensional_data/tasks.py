@@ -26,10 +26,17 @@ def read_sql_lines(path):
     
 def read_sql_file(path):
     """
-    Reads the full content of a .sql file as a single string.
+    Reads a .sql file and removes all 'GO' batch separators.
+    Returns the cleaned SQL as a single string.
     """
-    with open(path, 'r') as f:
-        return f.read()
+    with open(path, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+    
+    # Remove lines that are just 'GO' (case-insensitive, allow surrounding whitespace)
+    clean_lines = [line for line in lines if line.strip().upper() != 'GO']
+    
+    return ''.join(clean_lines)
+
 
 def execute_sql_file(db, sql_path, validate=False, validation_query="", require_rows=False):
     try:
@@ -39,9 +46,19 @@ def execute_sql_file(db, sql_path, validate=False, validation_query="", require_
 
         sql = read_sql_file(sql_path)
 
-        logger.info("Executing full SQL file...")
-        cursor.execute(sql)
-        affected_rows_total = cursor.rowcount
+        # Split on 'GO' (case-insensitive, handles whitespace around it)
+        import re
+        batches = re.split(r'^\s*GO\s*$', sql, flags=re.MULTILINE | re.IGNORECASE)
+
+        affected_rows_total = 0
+
+        logger.info("Executing SQL batches...")
+        for batch in batches:
+            batch = batch.strip()
+            if batch:
+                logger.debug(f"Executing batch:\n{batch}")
+                cursor.execute(batch)
+                affected_rows_total += cursor.rowcount
 
         if require_rows and affected_rows_total == 0:
             logger.warning("INSERT executed but no rows were inserted.")
@@ -61,10 +78,11 @@ def execute_sql_file(db, sql_path, validate=False, validation_query="", require_
         return {"success": True}
 
     except Exception as e:
-        logger.error("Execution error: {}", e)
+        logger.error(f"Execution error: {e}")
         return {"success": False, "error": str(e)}
     finally:
-        conn.close()
+        if 'conn' in locals():
+            conn.close()
 
 
 
