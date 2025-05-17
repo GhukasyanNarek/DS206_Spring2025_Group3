@@ -190,6 +190,7 @@ CREATE TABLE dbo.FactOrders (
     OrderDate DATE,
     RequiredDate DATE,
     ShippedDate DATE,
+    TerritoryID_FK INT,
     Freight DECIMAL(10,2),
     Quantity INT,
     UnitPrice DECIMAL(10,2),
@@ -198,7 +199,20 @@ CREATE TABLE dbo.FactOrders (
     FOREIGN KEY (CustomerID_FK) REFERENCES dbo.DimCustomers_SCD2(CustomerID_Table_SK),
     FOREIGN KEY (ProductID_FK) REFERENCES dbo.DimProducts_SCD4(ProductID_SK_PK),
     FOREIGN KEY (EmployeeID_FK) REFERENCES dbo.DimEmployees_SCD1(EmployeeID_SK_PK),
-    FOREIGN KEY (ShipperID_FK) REFERENCES dbo.DimShippers_SCD3(ShipperID_SK_PK)
+    FOREIGN KEY (ShipperID_FK) REFERENCES dbo.DimShippers_SCD3(ShipperID_SK_PK),
+    FOREIGN KEY (TerritoryID_FK) REFERENCES dbo.DimTerritories_SCD3(TerritoryID_SK_PK)
+);
+
+-- FactOrders Error
+CREATE TABLE dbo.FactOrders_Error (
+    FactOrderErrorID_PK INT IDENTITY(1,1) PRIMARY KEY,
+    OrderID_FK INT NOT NULL,
+    MissingKeyType NVARCHAR(50) NOT NULL,
+    StagingRawID INT NOT NULL,
+    OrderDate DATETIME,
+    ShipDate DATETIME,
+    Quantity SMALLINT,
+    TotalAmount DECIMAL(18,2)
 );
 
 -- Seed Dim_SOR
