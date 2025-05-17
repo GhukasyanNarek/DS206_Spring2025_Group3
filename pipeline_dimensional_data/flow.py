@@ -36,7 +36,7 @@ class DimensionalDataFlow:
         for update_func in [
             update_dim_categories,
             update_dim_customers,
-            # update_dim_employees,
+            update_dim_employees,
             update_dim_suppliers,
             update_dim_products,
             update_dim_region,
@@ -48,10 +48,10 @@ class DimensionalDataFlow:
                 logger.error("Aborting: {} failed.".format(update_func.__name__))
                 return
 
-        # logger.info("Dimension updates complete. Updating fact table...")
-        # result = update_fact_orders()
-        # if not result["success"]:
-        #     logger.error("FactOrders update failed.")
-        #     return
+        logger.info("Dimension updates complete. Updating fact table...")
+        result = update_fact_orders()
+        if not result["success"]:
+            logger.error("FactOrders update failed.")
+            return
 
         logger.info("ETL pipeline completed.")
