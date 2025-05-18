@@ -66,6 +66,12 @@ Once the database is up, execute:
 python3 main.py --reset
 ```
 
+Then, after --reset is done, just run normally 
+
+```bash
+python3 main.py
+```
+
 This will:
 
 - Drop (if exists) and recreate the `ORDER_DDS` database
