@@ -57,7 +57,6 @@ CREATE TABLE dbo.DimEmployees_SCD1 (
     Country NVARCHAR(255),
     HomePhone NVARCHAR(255),
     Extension NVARCHAR(10),
-    Photo VARBINARY(MAX),
     Notes NVARCHAR(MAX),
     ReportsTo INT,
     PhotoPath NVARCHAR(255),
