@@ -42,8 +42,17 @@ def get_connection_string(database=None):
 def get_engine(database=None):
     return create_engine(get_connection_string(database))
 
-def read_sql_file(filepath):
-    with open(filepath, 'r') as f:
+def read_sql_lines(path):
+    with open(path, 'r') as f:
+        lines = f.readlines()
+        return [line.strip() for line in lines if line.strip() and not line.strip().startswith("--")]
+    
+    
+def read_sql_file(path):
+    """
+    Reads the full content of a .sql file as a single string.
+    """
+    with open(path, 'r') as f:
         return f.read()
     
 def wait_until_database_exists(database_name, timeout=10, poll_interval=1):
