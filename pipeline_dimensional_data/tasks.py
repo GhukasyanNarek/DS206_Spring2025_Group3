@@ -477,14 +477,11 @@ def update_dim_sor():
         logger.error("Failed to update Dim_SOR: {}", e)
         return {"success": False, "error": str(e)}
 
-def update_dim_categories(): # when you want to test this by deleting a row, the logs will show numerous errors regarding 
-    # FK constraints. This is expected as the row is not in the table anymore.
-    # The errors are logged but the process continues.
+def update_dim_categories():
     try:
         conn = get_pyodbc_connection("ORDER_DDS")
         cursor = conn.cursor()
 
-        
         with open("pipeline_dimensional_data/queries/update_dim_categories.sql", "r") as file:
             sql_commands = file.read().split("GO")
         for cmd in sql_commands:
@@ -496,10 +493,8 @@ def update_dim_categories(): # when you want to test this by deleting a row, the
     except Exception as e:
         logger.error("Failed to update DimCategories_SCD1: {}", e)
         return {"success": False, "error": str(e)}
-    
-def update_dim_employees(): # again, when you want to test this by deleting a row, the logs will show numerous errors regarding
-    # FK constraints. This is expected as the row is not in the table anymore.
-    # The errors are logged but the process continues.
+
+def update_dim_employees():
     try:
         conn = get_pyodbc_connection("ORDER_DDS")
         cursor = conn.cursor()
@@ -537,7 +532,6 @@ def update_dim_regions():
         logger.error("Failed to update DimRegions_SCD1: {}", e)
         return {"success": False, "error": str(e)}
 
-
 def update_dim_customers():
     try:
         conn = get_pyodbc_connection("ORDER_DDS")
@@ -557,6 +551,146 @@ def update_dim_customers():
         logger.error("Failed to update DimCustomers_SCD2: {}", e)
         return {"success": False, "error": str(e)}
 
+def update_dim_products():
+    try:
+        conn = get_pyodbc_connection("ORDER_DDS")
+        cursor = conn.cursor()
+
+        with open("pipeline_dimensional_data/queries/update_dim_Products.sql", "r") as file:
+            sql_commands = file.read().split("GO")
+
+        for cmd in sql_commands:
+            if cmd.strip():
+                cursor.execute(cmd)
+
+        conn.commit()
+        logger.info("Updated DimProducts_SCD4 successfully.")
+        return {"success": True}
+    except Exception as e:
+        logger.error("Failed to update DimProducts_SCD4: {}", e)
+        return {"success": False, "error": str(e)}
+
+def update_dim_products_history():
+    try:
+        conn = get_pyodbc_connection("ORDER_DDS")
+        cursor = conn.cursor()
+
+        with open("pipeline_dimensional_data/queries/update_dim_Products_History.sql", "r") as file:
+            sql_commands = file.read().split("GO")
+
+        for cmd in sql_commands:
+            if cmd.strip():
+                cursor.execute(cmd)
+
+        conn.commit()
+        logger.info("Updated DimProducts_History successfully.")
+        return {"success": True}
+    except Exception as e:
+        logger.error("Failed to update DimProducts_History: {}", e)
+        return {"success": False, "error": str(e)}
+
+def update_dim_shippers():
+    try:
+        conn = get_pyodbc_connection("ORDER_DDS")
+        cursor = conn.cursor()
+
+        with open("pipeline_dimensional_data/queries/update_dim_Shippers.sql", "r") as file:
+            sql_commands = file.read().split("GO")
+
+        for cmd in sql_commands:
+            if cmd.strip():
+                cursor.execute(cmd)
+
+        conn.commit()
+        logger.info("Updated DimShippers_SCD3 successfully.")
+        return {"success": True}
+    except Exception as e:
+        logger.error("Failed to update DimShippers_SCD3: {}", e)
+        return {"success": False, "error": str(e)}
+
+def update_dim_suppliers():
+    try:
+        conn = get_pyodbc_connection("ORDER_DDS")
+        cursor = conn.cursor()
+
+        with open("pipeline_dimensional_data/queries/update_dim_Suppliers.sql", "r") as file:
+            sql_commands = file.read().split("GO")
+
+        for cmd in sql_commands:
+            if cmd.strip():
+                cursor.execute(cmd)
+
+        conn.commit()
+        logger.info("Updated DimSuppliers_SCD4 successfully.")
+        return {"success": True}
+    except Exception as e:
+        logger.error("Failed to update DimSuppliers_SCD4: {}", e)
+        return {"success": False, "error": str(e)}
+
+def update_dim_suppliers_history():
+    try:
+        conn = get_pyodbc_connection("ORDER_DDS")
+        cursor = conn.cursor()
+
+        with open("pipeline_dimensional_data/queries/update_dim_Suppliers_History.sql", "r") as file:
+            sql_commands = file.read().split("GO")
+
+        for cmd in sql_commands:
+            if cmd.strip():
+                cursor.execute(cmd)
+
+        conn.commit()
+        logger.info("Updated DimSuppliers_History successfully.")
+        return {"success": True}
+    except Exception as e:
+        logger.error("Failed to update DimSuppliers_History: {}", e)
+        return {"success": False, "error": str(e)}
+
+def update_dim_territories():
+    try:
+        conn = get_pyodbc_connection("ORDER_DDS")
+        cursor = conn.cursor()
+
+        with open("pipeline_dimensional_data/queries/update_dim_Territories.sql", "r") as file:
+            sql_commands = file.read().split("GO")
+
+        for cmd in sql_commands:
+            if cmd.strip():
+                cursor.execute(cmd)
+
+        conn.commit()
+        logger.info("Updated DimTerritories_SCD3 successfully.")
+        return {"success": True}
+    except Exception as e:
+        logger.error("Failed to update DimTerritories_SCD3: {}", e)
+        return {"success": False, "error": str(e)}
+
+def update_all_dimensions():
+    logger.info("Starting update of all dimensional tables...")
+
+    steps = [
+        ("Dim_SOR", update_dim_sor),
+        ("DimCategories_SCD1", update_dim_categories),
+        ("DimCustomers_SCD2", update_dim_customers),
+        ("DimEmployees_SCD1", update_dim_employees),
+        ("DimRegion_SCD1", update_dim_regions),
+        ("DimProducts_SCD4", update_dim_products),
+        ("DimProducts_History", update_dim_products_history),
+        ("DimShippers_SCD3", update_dim_shippers),
+        ("DimSuppliers_SCD4", update_dim_suppliers),
+        ("DimSuppliers_History", update_dim_suppliers_history),
+        ("DimTerritories_SCD3", update_dim_territories),
+    ]
+
+    for name, func in steps:
+        logger.info(f"Updating {name}...")
+        result = func()
+        if not result.get("success"):
+            logger.error(f"Aborting dimension update pipeline: {name} failed.")
+            return result
+
+    logger.info("All dimensional tables updated successfully.")
+    return {"success": True}
 
 def should_setup_schema():
     try:
