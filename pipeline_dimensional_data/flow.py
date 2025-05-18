@@ -2,7 +2,9 @@ from pipeline_dimensional_data.tasks import (
     update_all_dimensions,
     update_dim_sor,
     load_all_staging_tables,
-    create_staging_raw_tables
+    create_staging_raw_tables,
+    update_fact_orders,
+    update_fact_orders_error
 )
 from utils import generate_execution_id
 from general_logging import logger as configured_logger
@@ -33,6 +35,16 @@ class DimensionalDataFlow:
         logger.info("Starting update of all dimensional tables...")
         if not update_all_dimensions()["success"]:
             logger.error("Aborting: update_all_dimensions failed.")
+            return
+
+        logger.info("Updating FactOrders...")
+        if not update_fact_orders()["success"]:
+            logger.error("Aborting: update_fact_orders failed.")
+            return
+
+        logger.info("Updating FactOrders_Error...")
+        if not update_fact_orders_error()["success"]:
+            logger.error("Aborting: update_fact_orders_error failed.")
             return
 
         logger.info("ETL pipeline completed.")

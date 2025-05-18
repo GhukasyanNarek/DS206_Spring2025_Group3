@@ -225,3 +225,4 @@ VALUES
     ('Staging_Region', 'RegionID'),
     ('Staging_Shippers', 'ShipperID'),
     ('Staging_Territories', 'TerritoryID');
+    

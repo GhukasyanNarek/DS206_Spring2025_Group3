@@ -2,7 +2,7 @@
 DECLARE @DatabaseName NVARCHAR(128) = 'ORDER_DDS';
 DECLARE @SchemaName NVARCHAR(128) = 'dbo';
 DECLARE @TableName NVARCHAR(128) = 'FactOrders';
-DECLARE @start_date DATE = '2020-01-01';
+DECLARE @start_date DATE = '1996-01-01';
 DECLARE @end_date DATE = '2025-12-31';
 
 USE [ORDER_DDS];

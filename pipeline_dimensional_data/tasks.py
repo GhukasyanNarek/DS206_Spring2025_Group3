@@ -692,6 +692,45 @@ def update_all_dimensions():
     logger.info("All dimensional tables updated successfully.")
     return {"success": True}
 
+def update_fact_orders():
+    try:
+        conn = get_pyodbc_connection("ORDER_DDS")
+        cursor = conn.cursor()
+
+        with open("pipeline_dimensional_data/queries/update_fact.sql", "r") as file:
+            sql_commands = file.read().split("GO")
+
+        for cmd in sql_commands:
+            if cmd.strip():
+                cursor.execute(cmd)
+
+        conn.commit()
+        logger.info("FactOrders successfully updated.")
+        return {"success": True}
+    except Exception as e:
+        logger.error("Failed to update FactOrders: {}", e)
+        return {"success": False, "error": str(e)}
+    
+def update_fact_orders_error():
+    try:
+        conn = get_pyodbc_connection("ORDER_DDS")
+        cursor = conn.cursor()
+
+        with open("pipeline_dimensional_data/queries/update_fact_error.sql", "r") as file:
+            sql_commands = file.read().split("GO")
+
+        for cmd in sql_commands:
+            if cmd.strip():
+                cursor.execute(cmd)
+
+        conn.commit()
+        logger.info("FactOrders_Error successfully updated.")
+        return {"success": True}
+    except Exception as e:
+        logger.error("Failed to update FactOrders_Error: {}", e)
+        return {"success": False, "error": str(e)}
+    
+    
 def should_setup_schema():
     try:
         conn = get_pyodbc_connection("master")
