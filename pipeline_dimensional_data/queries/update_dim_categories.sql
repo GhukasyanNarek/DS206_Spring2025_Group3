@@ -13,7 +13,7 @@ USING (
       ON sor.StagingTableName = 'Staging_Categories'
      AND sor.TablePrimaryKeyColumn = 'CategoryID'
 ) AS SOURCE
-ON TARGET.CategoryID_NK = SOURCE.CategoryID
+ON TARGET.CategoryID_NK = SOURCE.CategoryID AND TARGET.IsDeleted = 0
 WHEN MATCHED THEN 
     UPDATE SET 
         TARGET.CategoryName = SOURCE.CategoryName,
@@ -35,7 +35,6 @@ WHEN NOT MATCHED THEN
         0, 
         GETDATE()
     );
-
 
 UPDATE TARGET
 SET TARGET.IsDeleted = 1

@@ -1,19 +1,16 @@
 USE ORDER_DDS;
 
-
 UPDATE TARGET
 SET 
     TARGET.ValidTo = GETDATE(),
     TARGET.IsCurrent = 0
 FROM dbo.DimCustomers_SCD2 TARGET
 JOIN (
-    SELECT 
-        sc.*,
-        sor.SORKey
+    SELECT sc.*, sor.SORKey
     FROM dbo.Staging_Customers sc
     JOIN dbo.Dim_SOR sor
-        ON sor.StagingTableName = 'Staging_Customers'
-       AND sor.TablePrimaryKeyColumn = 'CustomerID'
+      ON sor.StagingTableName = 'Staging_Customers'
+     AND sor.TablePrimaryKeyColumn = 'CustomerID'
 ) AS SOURCE
 ON SOURCE.CustomerID = TARGET.CustomerID_NK
 WHERE TARGET.IsCurrent = 1 AND (
@@ -28,7 +25,6 @@ WHERE TARGET.IsCurrent = 1 AND (
     ISNULL(TARGET.Phone, '')          <> ISNULL(SOURCE.Phone, '') OR
     ISNULL(TARGET.Fax, '')            <> ISNULL(SOURCE.Fax, '')
 );
-
 
 INSERT INTO dbo.DimCustomers_SCD2 (
     SORKey,
@@ -69,8 +65,12 @@ FROM dbo.Staging_Customers sc
 JOIN dbo.Dim_SOR sor
     ON sor.StagingTableName = 'Staging_Customers'
    AND sor.TablePrimaryKeyColumn = 'CustomerID'
-LEFT JOIN dbo.DimCustomers_SCD2 tgt
-    ON tgt.CustomerID_NK = sc.CustomerID AND tgt.IsCurrent = 1
+LEFT JOIN (
+    SELECT *
+    FROM dbo.DimCustomers_SCD2
+    WHERE IsCurrent = 1
+) tgt
+    ON tgt.CustomerID_NK = sc.CustomerID
 WHERE tgt.CustomerID_NK IS NULL
    OR (
         ISNULL(tgt.CompanyName, '')    <> ISNULL(sc.CompanyName, '') OR
@@ -84,4 +84,3 @@ WHERE tgt.CustomerID_NK IS NULL
         ISNULL(tgt.Phone, '')          <> ISNULL(sc.Phone, '') OR
         ISNULL(tgt.Fax, '')            <> ISNULL(sc.Fax, '')
    );
-

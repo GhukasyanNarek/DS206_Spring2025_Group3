@@ -1,51 +1,53 @@
 USE ORDER_DDS;
 
-
-INSERT INTO dbo.DimProducts_History (
+INSERT INTO dbo.DimSuppliers_History (
     SORKey,
-    ProductID_NK,
-    ProductID_DURABLE_SK,
-    ProductName,
-    SupplierID,
-    CategoryID,
-    QuantityPerUnit,
-    UnitPrice,
-    UnitsInStock,
-    UnitsOnOrder,
-    ReorderLevel,
-    Discontinued,
+    SupplierID_NK,
+    CompanyName,
+    ContactName,
+    ContactTitle,
+    [Address],
+    City,
+    Region,
+    PostalCode,
+    Country,
+    Phone,
+    Fax,
+    HomePage,
     ValidFrom,
     EndDate
 )
 SELECT 
     sor.SORKey,
-    dp.ProductID_NK,
-    dp.ProductID_DURABLE_SK,
-    dp.ProductName,
-    dp.SupplierID,
-    dp.CategoryID,
-    dp.QuantityPerUnit,
-    dp.UnitPrice,
-    dp.UnitsInStock,
-    dp.UnitsOnOrder,
-    dp.ReorderLevel,
-    dp.Discontinued,
-    dp.LastUpdated AS ValidFrom,
+    ds.SupplierID_NK,
+    ds.CompanyName,
+    ds.ContactName,
+    ds.ContactTitle,
+    ds.[Address],
+    ds.City,
+    ds.Region,
+    ds.PostalCode,
+    ds.Country,
+    ds.Phone,
+    ds.Fax,
+    ds.HomePage,
+    ds.LastUpdated AS ValidFrom,
     GETDATE()     AS EndDate
-FROM dbo.DimProducts_SCD4 dp
-JOIN dbo.Staging_Products sp
-    ON dp.ProductID_NK = sp.ProductID
+FROM dbo.DimSuppliers_SCD4 ds
+JOIN dbo.Staging_Suppliers ss
+    ON ds.SupplierID_NK = ss.SupplierID
 JOIN dbo.Dim_SOR sor
-    ON sor.StagingTableName = 'Staging_Products'
-   AND sor.TablePrimaryKeyColumn = 'ProductID'
+    ON sor.StagingTableName = 'Staging_Suppliers'
+   AND sor.TablePrimaryKeyColumn = 'SupplierID'
 WHERE
-    ISNULL(dp.ProductName, '')         <> ISNULL(sp.ProductName, '') OR
-    ISNULL(dp.SupplierID, -1)          <> ISNULL(sp.SupplierID, -1) OR
-    ISNULL(dp.CategoryID, -1)          <> ISNULL(sp.CategoryID, -1) OR
-    ISNULL(dp.QuantityPerUnit, '')     <> ISNULL(sp.QuantityPerUnit, '') OR
-    ISNULL(dp.UnitPrice, 0.0)          <> ISNULL(sp.UnitPrice, 0.0) OR
-    ISNULL(dp.UnitsInStock, 0)         <> ISNULL(sp.UnitsInStock, 0) OR
-    ISNULL(dp.UnitsOnOrder, 0)         <> ISNULL(sp.UnitsOnOrder, 0) OR
-    ISNULL(dp.ReorderLevel, 0)         <> ISNULL(sp.ReorderLevel, 0) OR
-    ISNULL(dp.Discontinued, 0)         <> ISNULL(sp.Discontinued, 0);
-
+    ISNULL(ds.CompanyName, '')     <> ISNULL(ss.CompanyName, '') OR
+    ISNULL(ds.ContactName, '')     <> ISNULL(ss.ContactName, '') OR
+    ISNULL(ds.ContactTitle, '')    <> ISNULL(ss.ContactTitle, '') OR
+    ISNULL(ds.[Address], '')       <> ISNULL(ss.[Address], '') OR
+    ISNULL(ds.City, '')            <> ISNULL(ss.City, '') OR
+    ISNULL(ds.Region, '')          <> ISNULL(ss.Region, '') OR
+    ISNULL(ds.PostalCode, '')      <> ISNULL(ss.PostalCode, '') OR
+    ISNULL(ds.Country, '')         <> ISNULL(ss.Country, '') OR
+    ISNULL(ds.Phone, '')           <> ISNULL(ss.Phone, '') OR
+    ISNULL(ds.Fax, '')             <> ISNULL(ss.Fax, '') OR
+    ISNULL(ds.HomePage, '')        <> ISNULL(ss.HomePage, '');

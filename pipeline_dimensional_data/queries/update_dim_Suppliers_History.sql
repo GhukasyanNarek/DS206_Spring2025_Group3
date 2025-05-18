@@ -1,35 +1,8 @@
 USE ORDER_DDS;
 
-
-MERGE INTO dbo.DimSuppliers_History AS TARGET
-USING (
-    SELECT 
-        ss.staging_raw_id,
-        sor.SORKey,
-        ss.SupplierID,
-        ss.CompanyName,
-        ss.ContactName,
-        ss.ContactTitle,
-        ss.[Address],
-        ss.City,
-        ss.Region,
-        ss.PostalCode,
-        ss.Country,
-        ss.Phone,
-        ss.Fax,
-        ss.HomePage,
-        GETDATE() AS ValidFrom
-    FROM dbo.Staging_Suppliers AS ss
-    JOIN dbo.Dim_SOR AS sor 
-        ON sor.StagingTableName = 'Staging_Suppliers'
-        AND sor.TablePrimaryKeyColumn = 'SupplierID'
-) AS SOURCE
-ON TARGET.SupplierID = SOURCE.SupplierID
-WHEN NOT MATCHED THEN
-INSERT (
-    staging_raw_id,
+INSERT INTO dbo.DimSuppliers_History (
     SORKey,
-    SupplierID,
+    SupplierID_NK,
     CompanyName,
     ContactName,
     ContactTitle,
@@ -41,22 +14,40 @@ INSERT (
     Phone,
     Fax,
     HomePage,
-    ValidFrom
+    ValidFrom,
+    EndDate
 )
-VALUES (
-    SOURCE.staging_raw_id,
-    SOURCE.SORKey,
-    SOURCE.SupplierID,
-    SOURCE.CompanyName,
-    SOURCE.ContactName,
-    SOURCE.ContactTitle,
-    SOURCE.[Address],
-    SOURCE.City,
-    SOURCE.Region,
-    SOURCE.PostalCode,
-    SOURCE.Country,
-    SOURCE.Phone,
-    SOURCE.Fax,
-    SOURCE.HomePage,
-    SOURCE.ValidFrom
-);
+SELECT 
+    sor.SORKey,
+    ds.SupplierID_NK, 
+    ds.CompanyName,
+    ds.ContactName,
+    ds.ContactTitle,
+    ds.[Address],
+    ds.City,
+    ds.Region,
+    ds.PostalCode,
+    ds.Country,
+    ds.Phone,
+    ds.Fax,
+    ds.HomePage,
+    ds.LastUpdated AS ValidFrom,
+    GETDATE()          AS EndDate
+FROM dbo.DimSuppliers_SCD4 ds
+JOIN dbo.Staging_Suppliers ss
+    ON ds.SupplierID_NK = ss.SupplierID
+JOIN dbo.Dim_SOR sor
+    ON sor.StagingTableName = 'Staging_Suppliers'
+   AND sor.TablePrimaryKeyColumn = 'SupplierID'
+WHERE
+    ISNULL(ds.CompanyName, '')     <> ISNULL(ss.CompanyName, '') OR
+    ISNULL(ds.ContactName, '')     <> ISNULL(ss.ContactName, '') OR
+    ISNULL(ds.ContactTitle, '')    <> ISNULL(ss.ContactTitle, '') OR
+    ISNULL(ds.[Address], '')       <> ISNULL(ss.[Address], '') OR
+    ISNULL(ds.City, '')            <> ISNULL(ss.City, '') OR
+    ISNULL(ds.Region, '')          <> ISNULL(ss.Region, '') OR
+    ISNULL(ds.PostalCode, '')      <> ISNULL(ss.PostalCode, '') OR
+    ISNULL(ds.Country, '')         <> ISNULL(ss.Country, '') OR
+    ISNULL(ds.Phone, '')           <> ISNULL(ss.Phone, '') OR
+    ISNULL(ds.Fax, '')             <> ISNULL(ss.Fax, '') OR
+    ISNULL(ds.HomePage, '')        <> ISNULL(ss.HomePage, '');
