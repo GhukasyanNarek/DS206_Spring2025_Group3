@@ -33,9 +33,12 @@ def run_pipeline(reset=False, start_date=None, end_date=None):
             return
 
         logger.info("Schema setup complete.")
-
         logger.info("Creating staging tables...")
         create_staging_raw_tables()
+
+        logger.info("Reloading raw Excel data into staging tables...")
+        load_all_staging_tables("raw_data_source.xlsx")
+        logger.info("Staging tables populated.")
 
     else:
         if should_setup_schema():
@@ -46,10 +49,10 @@ def run_pipeline(reset=False, start_date=None, end_date=None):
             logger.info("Ensuring staging tables exist...")
             create_staging_raw_tables()
 
-    logger.info("Reloading raw Excel data into staging tables...")
-    load_all_staging_tables("raw_data_source.xlsx")
+            logger.info("Reloading raw Excel data into staging tables...")
+            load_all_staging_tables("raw_data_source.xlsx")
+            logger.info("Staging tables populated.")
 
-    logger.info("Pipeline is ready. Launching ETL flow...")
     flow = DimensionalDataFlow()
     flow.exec(start_date=start_date, end_date=end_date)
 
