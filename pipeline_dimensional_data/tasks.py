@@ -3,7 +3,7 @@ from loguru import logger
 from dotenv import load_dotenv
 import os
 import pandas as pd
-from utils import safe_date
+from utils import safe_date, read_sql_file, read_sql_lines
 
 load_dotenv()
 
@@ -18,18 +18,7 @@ def get_pyodbc_connection(database: str):
 
     conn_str = f"DRIVER={{{driver}}};SERVER={server};DATABASE={database};UID={username};PWD={password}"
     return pyodbc.connect(conn_str, autocommit=True)
-
-def read_sql_lines(path):
-    with open(path, 'r') as f:
-        lines = f.readlines()
-        return [line.strip() for line in lines if line.strip() and not line.strip().startswith("--")]
-    
-def read_sql_file(path):
-    """
-    Reads the full content of a .sql file as a single string.
-    """
-    with open(path, 'r') as f:
-        return f.read()
+ 
 
 def execute_sql_file(db, sql_path, validate=False, validation_query=""):
     """
@@ -37,7 +26,6 @@ def execute_sql_file(db, sql_path, validate=False, validation_query=""):
     If `validate` is True, it will validate the execution by running a validation query at the end.
     """
     try:
-        logger.info(f"Connecting to {db}...")
         conn = get_pyodbc_connection(db)
         cursor = conn.cursor()
 
@@ -45,9 +33,13 @@ def execute_sql_file(db, sql_path, validate=False, validation_query=""):
         statements = [stmt.strip() for stmt in sql.split(";") if stmt.strip()]
 
         for stmt in statements:
-            logger.info("Executing SQL: {}", stmt)
+            logger.debug("Executing SQL: {}", stmt)
             try:
                 cursor.execute(stmt)
+
+                while cursor.nextset():
+                    pass
+                
             except Exception as e:
                 logger.error("Execution failed: {}\nError: {}", stmt, e)
                 return {"success": False, "error": str(e)}
@@ -128,30 +120,6 @@ def load_staging_categories(file_path: str) -> dict:
     except Exception as e:
         logger.error("Failed to load categories: {}", e)
         return {"success": False, "error": str(e)}    
-
-
-def update_dim_categories():
-    """
-    Execute the SCD1 + delete update for DimCategories.
-    """
-    try:
-        conn = get_pyodbc_connection("ORDER_DDS")
-        cursor = conn.cursor()
-
-        with open("pipeline_dimensional_data/queries/update_dim_categories.sql", "r") as file:
-            sql_commands = file.read().split("GO")
-        for cmd in sql_commands:
-            if cmd.strip():
-                cursor.execute(cmd)
-
-        conn.commit()
-        conn.close()
-        logger.info("Updated DimCategories_SCD1 successfully.")
-        return {"success": True}
-
-    except Exception as e:
-        logger.error("Failed to update DimCategories_SCD1: {}", e)
-        return {"success": False, "error": str(e)}
     
 
 def load_staging_products(file_path: str) -> dict:
@@ -439,8 +407,37 @@ def load_staging_employees(file_path: str) -> dict:
     except Exception as e:
         logger.error("Failed to load employees: {}", e)
         return {"success": False, "error": str(e)}
+    
+
+def truncate_staging_tables():
+    try:
+        conn = get_pyodbc_connection("ORDER_DDS")
+        cursor = conn.cursor()
+
+        tables_in_delete_order = [
+            "Staging_OrderDetails", 
+            "Staging_Orders",       
+            "Staging_Products",     
+            "Staging_Employees",
+            "Staging_Territories",
+            "Staging_Region",
+            "Staging_Customers",
+            "Staging_Categories",
+            "Staging_Suppliers",
+            "Staging_Shippers"
+        ]
+
+        for table in tables_in_delete_order:
+            logger.info(f"Clearing table: {table}")
+            cursor.execute(f"DELETE FROM dbo.{table}")
+
+        conn.commit()
+        logger.info("All staging tables cleared using DELETE.")
+    except Exception as e:
+        logger.error("Failed to clear staging tables: {}", e)
 
 def load_all_staging_tables(file_path: str) -> dict:
+    truncate_staging_tables()
     loaders = [
         load_staging_categories,
         load_staging_customers,
@@ -461,6 +458,105 @@ def load_all_staging_tables(file_path: str) -> dict:
             return result
 
     return {"success": True}
+
+def update_dim_sor():
+    try:
+        conn = get_pyodbc_connection("ORDER_DDS")
+        cursor = conn.cursor()
+
+        with open("pipeline_dimensional_data/queries/update_dim_sor.sql", "r") as file:
+            sql = file.read()
+        for statement in sql.split("GO"):
+            if statement.strip():
+                cursor.execute(statement)
+
+        conn.commit()
+        logger.info("Updated Dim_SOR successfully.")
+        return {"success": True}
+    except Exception as e:
+        logger.error("Failed to update Dim_SOR: {}", e)
+        return {"success": False, "error": str(e)}
+
+def update_dim_categories(): # when you want to test this by deleting a row, the logs will show numerous errors regarding 
+    # FK constraints. This is expected as the row is not in the table anymore.
+    # The errors are logged but the process continues.
+    try:
+        conn = get_pyodbc_connection("ORDER_DDS")
+        cursor = conn.cursor()
+
+        
+        with open("pipeline_dimensional_data/queries/update_dim_categories.sql", "r") as file:
+            sql_commands = file.read().split("GO")
+        for cmd in sql_commands:
+            if cmd.strip():
+                cursor.execute(cmd)        
+        conn.commit()
+        logger.info("Updated DimCategories_SCD1 successfully.")
+        return {"success": True}
+    except Exception as e:
+        logger.error("Failed to update DimCategories_SCD1: {}", e)
+        return {"success": False, "error": str(e)}
+    
+def update_dim_employees(): # again, when you want to test this by deleting a row, the logs will show numerous errors regarding
+    # FK constraints. This is expected as the row is not in the table anymore.
+    # The errors are logged but the process continues.
+    try:
+        conn = get_pyodbc_connection("ORDER_DDS")
+        cursor = conn.cursor()
+
+        with open("pipeline_dimensional_data/queries/update_dim_employees.sql", "r") as file:
+            sql_commands = file.read().split("GO")
+
+        for cmd in sql_commands:
+            if cmd.strip():
+                cursor.execute(cmd)
+
+        conn.commit()
+        logger.info("Updated DimEmployees_SCD1 successfully.")
+        return {"success": True}
+    except Exception as e:
+        logger.error("Failed to update DimEmployees_SCD1: {}", e)
+        return {"success": False, "error": str(e)}
+
+def update_dim_regions():
+    try:
+        conn = get_pyodbc_connection("ORDER_DDS")
+        cursor = conn.cursor()
+
+        with open("pipeline_dimensional_data/queries/update_dim_Region.sql", "r") as file:
+            sql_commands = file.read().split("GO")
+
+        for cmd in sql_commands:
+            if cmd.strip():
+                cursor.execute(cmd)
+
+        conn.commit()
+        logger.info("Updated DimRegions_SCD1 successfully.")
+        return {"success": True}
+    except Exception as e:
+        logger.error("Failed to update DimRegions_SCD1: {}", e)
+        return {"success": False, "error": str(e)}
+
+
+def update_dim_customers():
+    try:
+        conn = get_pyodbc_connection("ORDER_DDS")
+        cursor = conn.cursor()
+
+        with open("pipeline_dimensional_data/queries/update_dim_customers.sql", "r") as file:
+            sql_commands = file.read().split("GO")
+
+        for cmd in sql_commands:
+            if cmd.strip():
+                cursor.execute(cmd)
+
+        conn.commit()
+        logger.info("Updated DimCustomers_SCD2 successfully.")
+        return {"success": True}
+    except Exception as e:
+        logger.error("Failed to update DimCustomers_SCD2: {}", e)
+        return {"success": False, "error": str(e)}
+
 
 def should_setup_schema():
     try:
